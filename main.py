@@ -6,7 +6,7 @@ from endpoints import Endpoints
 
 GITHUB_PLUGINS_JSON_URL = os.getenv(
     "GITHUB_PLUGINS_JSON_URL",
-    "https://raw.githubusercontent.com/matteocacciola/cheshirecat-plugins/main/plugins.json"
+    "https://raw.githubusercontent.com/matteocacciola/grinning-cat-plugins/main/plugins.json"
 )
 DEFAULT_PAGE_SIZE = int(os.getenv("DEFAULT_PAGE_SIZE", 10))
 CACHE_DURATION_MINUTES = int(os.getenv("CACHE_DURATION_MINUTES", 1440))
@@ -21,10 +21,10 @@ backend = Endpoints(
     cache_duration=CACHE_DURATION_MINUTES
 )
 backend.customize_openapi(
-    "😸 Cheshire Cat AI - Plugins Registry",
+    "😸 Grinning Cat AI - Plugins Registry",
     "https://cheshirecat.ai/wp-content/uploads/2023/10/Logo-Cheshire-Cat.svg",
     "1.0.0",
-    "The Backend API to manage, filter, and download all the plugins in the official registry of Enterprise version of The Cheshire Cat AI."
+    "The Backend API to manage, filter, and download all the plugins in the official registry of Enterprise version of The Grinning Cat AI."
 )
 
 if __name__ == "__main__":

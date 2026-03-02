@@ -1,11 +1,11 @@
 services:
 
-  cheshire-cat-plugins-backend:
+  grinning-cat-plugins-backend:
     build:
       context: .
-    container_name: cheshire_cat_plugins_backend
+    container_name: grinning_cat_plugins_backend
     environment:
-      - GITHUB_PLUGINS_JSON_URL=${GITHUB_PLUGINS_JSON_URL:-https://raw.githubusercontent.com/matteocacciola/cheshirecat-plugins/main/plugins.json}
+      - GITHUB_PLUGINS_JSON_URL=${GITHUB_PLUGINS_JSON_URL:-https://raw.githubusercontent.com/matteocacciola/grinning-cat-plugins/main/plugins.json}
       - DEFAULT_PAGE_SIZE=${DEFAULT_PAGE_SIZE:-10}
       - CACHE_DURATION_MINUTES=${CACHE_DURATION_MINUTES:-1440}
       - RELOAD=${RELOAD:-""}

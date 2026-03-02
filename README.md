@@ -1,5 +1,5 @@
 # Awesome plugins backend
-The backend of the Enterprise version of The Cheshire Cat plugin directory
+The backend of the Enterprise version of The Grinning Cat plugin directory
 
 ## Getting started...
 

@@ -1,4 +1,3 @@
-from datetime import datetime, timezone
 from urllib.parse import urlparse
 from fastapi import HTTPException, APIRouter, Body
 from fastapi.responses import FileResponse, HTMLResponse
@@ -271,11 +270,7 @@ class Endpoints:
 
         async with AsyncClient() as client:
             response = await client.get(url)
-            if response.status_code != 200:
-                raise HTTPException(
-                    status_code=503,
-                    detail={"error": f"Github API not available - status code: {response.status_code}, reason: {response.text}"}
-                )
+            response.raise_for_status()
             response = response.json()
             
             i = 0
@@ -383,7 +378,7 @@ class Endpoints:
         if os.path.exists(os_path_plugin) and check:
             return os_path_plugin
 
-        async with httpx.AsyncClient() as client:
+        async with AsyncClient() as client:
             response = await client.get(url_zip)
 
             """
@@ -393,7 +388,7 @@ class Endpoints:
                 try:
                     url_location = response.headers["location"]
                     response = await client.get(url_location)
-                except httpx.RequestError as e:
+                except RequestError as e:
                     error = {"error": str(e)}
                     raise HTTPException(
                         status_code=400,

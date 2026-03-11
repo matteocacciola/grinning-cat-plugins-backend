@@ -274,7 +274,7 @@ class Endpoints:
             if response.status_code != 200:
                 raise HTTPException(
                     status_code=503,
-                    detail={"error": f"Github API not available: {response.reason}"}
+                    detail={"error": f"Github API not available - status code: {response.status_code}, reason: {response.text}"}
                 )
             response = response.json()
             

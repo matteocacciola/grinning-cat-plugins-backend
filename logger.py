@@ -11,7 +11,7 @@ logging.basicConfig(
 )
 
 
-def error_log(message, log_level="DEBUG"):
+def write_log(message, log_level="DEBUG"):
     if log_level == "DEBUG":
         logger.debug(message)
     elif log_level == "INFO":

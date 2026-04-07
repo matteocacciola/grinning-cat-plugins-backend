@@ -5,7 +5,7 @@ from fastapi.openapi.utils import get_openapi
 from httpx import AsyncClient, RequestError
 from utils import *
 from typing import List, Dict, Any, Set
-from logger import error_log
+from logger import write_log
 from analytics import update_analytics, generate_plot
 import os
 from plugins_html_table import generate_plugins_html_table, PLUGIN_COLUMNS
@@ -50,7 +50,7 @@ class Endpoints:
                     url = entry["url"]
                     plugin_json_url = url.replace("github.com", "raw.githubusercontent.com") + "/main/plugin.json"
                     try:
-                        print(f"Fetching plugin {plugin_json_url}")
+                        write_log(f"Fetching plugin {plugin_json_url}", "INFO")
                         plugin_data = await fetch_plugin_json(plugin_json_url)
 
                         # Validate plugin.json required fields
@@ -62,11 +62,10 @@ class Endpoints:
                             continue
 
                         message = f"Error: Skipping plugin {url}"
-                        error_log(message, "WARNING")
+                        write_log(message, "WARNING")
                     except Exception as e:
                         error_msg = f"Error fetching plugin: {plugin_json_url}, Error: {str(e)}"
-                        print(error_msg)
-                        error_log(error_msg, "ERROR")
+                        write_log(error_msg, "ERROR")
 
                 for plugin in cached_plugins:
                     plugin["downloads"] = analytics_data.get(plugin["url"], 0)
@@ -77,7 +76,7 @@ class Endpoints:
                 self.cache_timestamp["plugins"] = datetime.now(timezone.utc)
         except RequestError as e:
             message = f"Error fetching data from GitHub: {str(e)}"
-            error_log(f"Can't cache plugins. {message}", "ERROR")
+            write_log(f"Can't cache plugins. {message}", "ERROR")
             raise HTTPException(status_code=500, detail=message)
 
     async def get_all_plugins(self, page: int = 1, page_size: int = 0, order: str | None = None) -> Dict[str, Any]:
@@ -285,7 +284,7 @@ class Endpoints:
                 url_zip = assets[0]["browser_download_url"]
                 version = response[i]["tag_name"]
                 if i != 0:
-                    error_log(f"The plugin {plugin_name} has no release zip file or was pushed by hand, the version pulled is {version}", "WARNING")
+                    write_log(f"The plugin {plugin_name} has no release zip file or was pushed by hand, the version pulled is {version}", "WARNING")
 
                 zip_filename = await self.download_releases_plugin_zip(plugin_name, url_zip, version)
             except (IndexError, KeyError):
@@ -330,7 +329,7 @@ class Endpoints:
                 shutil.rmtree(repo_path)
             except Exception as e:
                 message = f"Error while checking repository status: {str(e)}"
-                error_log(f"{repo_path} - {message}", "WARNING")
+                write_log(f"{repo_path} - {message}", "WARNING")
                 shutil.rmtree(repo_path)
 
         # Clone the repository
@@ -338,7 +337,7 @@ class Endpoints:
             git.Repo.clone_from(plugin_url, repo_path)
         except git.GitCommandError as e:
             message = f"Failed to clone repository: {str(e)}"
-            error_log(f"{repo_path} - {message}")
+            write_log(f"{repo_path} - {message}")
             raise HTTPException(status_code=500, detail=message)
 
         return repo_path
@@ -354,7 +353,7 @@ class Endpoints:
             path = urlparse(plugin_url).path
             parts = path.strip("/").split("/")
             if len(parts) < 2:
-                error_log(f"Invalid GitHub URL format: {plugin_url}", "WARNING")
+                write_log(f"Invalid GitHub URL format: {plugin_url}", "WARNING")
                 return ""
 
             owner, repo = parts[0], parts[1]
@@ -375,13 +374,13 @@ class Endpoints:
                         commit_data = response.json()
                         return commit_data.get("sha", "")
 
-                    error_log(f"Could not fetch commit hash from {plugin_url}", "WARNING")
+                    write_log(f"Could not fetch commit hash from {plugin_url}", "WARNING")
                     return ""
 
-                error_log(f"GitHub API error for {plugin_url}: {response.status_code}", "WARNING")
+                write_log(f"GitHub API error for {plugin_url}: {response.status_code}", "WARNING")
                 return ""
         except Exception as e:
-            error_log(f"Error fetching commit hash for {plugin_url}: {str(e)}", "WARNING")
+            write_log(f"Error fetching commit hash for {plugin_url}: {str(e)}", "WARNING")
             return ""
 
     @staticmethod

@@ -70,6 +70,7 @@ class Endpoints:
 
                 for plugin in cached_plugins:
                     plugin["downloads"] = analytics_data.get(plugin["url"], 0)
+                    plugin["last_commit_hash"] = await self.fetch_last_commit_hash(plugin["url"])
 
                 # Update the cache with the new data and timestamp
                 self.cache["plugins"] = cached_plugins
@@ -341,6 +342,47 @@ class Endpoints:
             raise HTTPException(status_code=500, detail=message)
 
         return repo_path
+
+    @staticmethod
+    async def fetch_last_commit_hash(plugin_url: str) -> str:
+        """
+        Fetches the hash of the latest commit from the main branch of a GitHub repository.
+        """
+        try:
+            # Extract owner and repo from the GitHub URL
+            # URL format: https://github.com/owner/repo
+            path = urlparse(plugin_url).path
+            parts = path.strip("/").split("/")
+            if len(parts) < 2:
+                error_log(f"Invalid GitHub URL format: {plugin_url}", "WARNING")
+                return ""
+
+            owner, repo = parts[0], parts[1]
+
+            # GitHub API endpoint to get the latest commit from main branch
+            api_url = f"https://api.github.com/repos/{owner}/{repo}/commits/main"
+
+            async with AsyncClient() as client:
+                response = await client.get(api_url)
+                if response.status_code == 200:
+                    commit_data = response.json()
+                    return commit_data.get("sha", "")
+                if response.status_code == 404:
+                    # Try master branch if main doesn't exist
+                    api_url = f"https://api.github.com/repos/{owner}/{repo}/commits/master"
+                    response = await client.get(api_url)
+                    if response.status_code == 200:
+                        commit_data = response.json()
+                        return commit_data.get("sha", "")
+
+                    error_log(f"Could not fetch commit hash from {plugin_url}", "WARNING")
+                    return ""
+
+                error_log(f"GitHub API error for {plugin_url}: {response.status_code}", "WARNING")
+                return ""
+        except Exception as e:
+            error_log(f"Error fetching commit hash for {plugin_url}: {str(e)}", "WARNING")
+            return ""
 
     @staticmethod
     async def create_plugin_zip(repo_path: str, plugin_name: str):
